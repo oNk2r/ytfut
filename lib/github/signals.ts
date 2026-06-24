@@ -34,6 +34,7 @@ export function signalsFromPayload(p: RawPayload, now = Date.now()): Signals {
     login: p.login,
     name: p.name || p.login,
     avatarUrl: p.avatarUrl || `https://github.com/${p.login}.png?size=480`,
+    location: p.location,
     followers: p.followers,
     account_age_years,
     public_repos: p.publicRepos,
@@ -47,6 +48,10 @@ export function signalsFromPayload(p: RawPayload, now = Date.now()): Signals {
     prs_to_others: p.recentPRs,
     reviews: p.recentReviews,
     issues_closed: p.recentIssues,
+    // Public commits + the private lump. GitHub gives no private-commit count to
+    // third parties (restrictedContributionsCount covers all private activity),
+    // so this is the closest "public + private" figure available.
+    recent_commits: p.recentCommits + p.recentRestricted,
     recent_spike,
   };
 }

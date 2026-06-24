@@ -37,6 +37,10 @@
   ::placeholder {
     color: var(--color-ink-mute);
   }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @keyframes flood {

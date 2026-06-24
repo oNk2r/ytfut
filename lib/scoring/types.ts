@@ -10,6 +10,7 @@ export interface Signals {
   login: string;
   name: string;
   avatarUrl: string;
+  location: string | null;
   followers: number;
   account_age_years: number;
   public_repos: number;
@@ -23,14 +24,35 @@ export interface Signals {
   prs_to_others: number;
   reviews: number;
   issues_closed: number;
+  recent_commits: number;
   recent_spike: boolean;
 }
 
-export interface BreakdownItem {
-  abbr: string;
-  title: string;
-  value: number;
-  reason: string;
+export type WorkRateLevel = "High" | "Med" | "Low";
+
+export interface Playstyle {
+  name: string;
+  icon: string; // lucide icon key, resolved in the UI (keeps lib/ framework-agnostic)
+  plus: boolean; // elite "PlayStyle+" tier
+  reason: string; // short, plain why-it-was-given (tooltip)
+}
+
+export interface Metric {
+  label: string;
+  value: number; // real GitHub count
+  unit?: string; // optional noun for the raw value, e.g. "stars"
+  score: number; // 0–99 normalization of value
+}
+
+export interface Report {
+  skillMoves: number; // 1–5
+  weakFoot: number; // 1–5
+  workRate: { attack: WorkRateLevel; defense: WorkRateLevel };
+  style: string;
+  // short, plain explanations for the always-shown attributes (tooltips)
+  reasons: { skillMoves: string; weakFoot: string; workRate: string; style: string };
+  playstyles: Playstyle[];
+  metrics: Metric[];
 }
 
 export interface Archetype {
@@ -56,5 +78,5 @@ export interface Card {
   archetype: string;
   archetypeBlurb: string;
   legacy: { L: number };
-  breakdown: BreakdownItem[];
+  report: Report;
 }

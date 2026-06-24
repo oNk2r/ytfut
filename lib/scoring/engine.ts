@@ -1,7 +1,9 @@
+import { countryFromLocation } from "../geo";
+import { deriveMetrics, deriveSkillMoves, deriveStyle, deriveWeakFoot, deriveWorkRate } from "./attributes";
 import { FINISH_LABELS, K, STATS, WEIGHTS } from "./constants";
+import { derivePlaystyles } from "./playstyles";
 import type {
   Archetype,
-  BreakdownItem,
   Card,
   Family,
   Finish,
@@ -156,23 +158,6 @@ function archetypeFromShape(st: Stats, finish: Finish): Archetype {
   return { name: "Mezzala", blurb: "the engine — a relentless box-to-box daily-driver" };
 }
 
-const fmt = (n: number) =>
-  n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k" : String(Math.round(n));
-const years = (n: number) => `${n} active year${n === 1 ? "" : "s"}`;
-
-// Every reason is now a real GitHub count — the GraphQL contributions API
-// supplies the figures the REST path used to estimate.
-function buildBreakdown(s: Signals, stats: Stats): BreakdownItem[] {
-  return [
-    { abbr: "PAC", title: "PACE", value: stats.pac, reason: `${fmt(s.recent_contributions)} contributions in the last year` },
-    { abbr: "SHO", title: "SHOOTING", value: stats.sho, reason: `${fmt(s.total_stars_owned)} stars across ${fmt(s.public_repos)} repos` },
-    { abbr: "PAS", title: "PASSING", value: stats.pas, reason: `${fmt(s.followers)} followers · ${fmt(s.prs_to_others)} PRs` },
-    { abbr: "DRI", title: "DRIBBLING", value: stats.dri, reason: `${s.languages} languages shipped` },
-    { abbr: "DEF", title: "DEFENDING", value: stats.def, reason: `${fmt(s.reviews)} reviews · ${fmt(s.issues_closed)} issues` },
-    { abbr: "PHY", title: "PHYSICAL", value: stats.phy, reason: `${fmt(s.total_contributions_lifetime)} contributions · ${years(s.active_years)}` },
-  ];
-}
-
 export function buildCard(s: Signals): Card {
   const stats = spike(applyTension(zscore(rawStats(s))), center(s));
   const { position, family } = positionFromShape(stats);
@@ -181,12 +166,16 @@ export function buildCard(s: Signals): Card {
   const overall = clamp(baseOVR + Math.round(K.legacy.bonusMax * L), 1, 99);
   const finish = pickFinish(overall, L, s.recent_spike, s.login);
   const archetype = archetypeFromShape(stats, finish);
+  const skill = deriveSkillMoves(s);
+  const weak = deriveWeakFoot(stats);
+  const work = deriveWorkRate(stats);
+  const style = deriveStyle(s);
   return {
     login: s.login,
     name: s.name,
     avatarUrl: s.avatarUrl,
-    country: "open-source",
-    club: finish === "icon" ? "legends" : "open-source",
+    country: countryFromLocation(s.location) ?? "",
+    club: finish === "icon" ? "legends" : "neutral",
     stats,
     position,
     family,
@@ -197,6 +186,19 @@ export function buildCard(s: Signals): Card {
     archetype: archetype.name,
     archetypeBlurb: archetype.blurb,
     legacy: { L },
-    breakdown: buildBreakdown(s, stats),
+    report: {
+      skillMoves: skill.value,
+      weakFoot: weak.value,
+      workRate: { attack: work.attack, defense: work.defense },
+      style: style.value,
+      reasons: {
+        skillMoves: skill.reason,
+        weakFoot: weak.reason,
+        workRate: work.reason,
+        style: style.reason,
+      },
+      playstyles: derivePlaystyles(s),
+      metrics: deriveMetrics(s),
+    },
   };
 }

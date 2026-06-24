@@ -2,16 +2,16 @@ import type { Finish } from "@/lib/scoring/types";
 
 // Each finish maps to a FUT background PNG (public/cards), the text ink the
 // Python generator uses for that card, a glow for the card's drop-shadow, and
-// avatarTint — a gradient laid over the avatar so any photo/logo/anime blends
-// into the card's palette. The tint is matched to the card's BRIGHTNESS: light
-// cards (silver, gold, legend-gold icon) tint light so dark photos are lifted
-// toward the card; dark cards (toty/totw) tint dark so bright photos are pulled
-// down. totw reuses the TOTY art; icon uses the legend art.
+// the avatar filter from the Claude Design card: avatarTint is a RADIAL tint —
+// transparent in the centre so the photo shows clearly, ramping to the card
+// colour toward the edges so they blend in; avatarHalo is the avatar's glow.
+// totw reuses the TOTY art; icon uses the legend art.
 export interface CardTheme {
   bg: string;
   ink: string;
   glow: string;
   avatarTint: string;
+  avatarHalo: string;
 }
 
 export const CARD_THEME: Record<Finish, CardTheme> = {
@@ -19,37 +19,43 @@ export const CARD_THEME: Record<Finish, CardTheme> = {
     bg: "/cards/bronze.png",
     ink: "#3a2717",
     glow: "rgba(190,120,60,.45)",
-    avatarTint: "linear-gradient(165deg, rgba(150,105,62,.28), rgba(110,74,42,.32))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(106,69,39,.26) 78%, rgba(50,31,14,.44))",
+    avatarHalo: "rgba(214,163,110,.4)",
   },
   silver: {
     bg: "/cards/silver.png",
     ink: "#303536",
     glow: "rgba(170,188,210,.5)",
-    avatarTint: "linear-gradient(165deg, rgba(190,198,210,.30), rgba(150,158,170,.34))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(170,188,210,.22) 78%, rgba(70,78,90,.42))",
+    avatarHalo: "rgba(220,228,238,.4)",
   },
   gold: {
     bg: "/cards/gold.png",
     ink: "#46390c",
     glow: "rgba(225,185,80,.55)",
-    avatarTint: "linear-gradient(165deg, rgba(228,194,104,.28), rgba(186,150,62,.32))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(243,214,121,.24) 78%, rgba(156,118,33,.44))",
+    avatarHalo: "rgba(243,214,121,.45)",
   },
   totw: {
     bg: "/cards/toty.png",
     ink: "#ebcd5b",
     glow: "rgba(90,140,255,.55)",
-    avatarTint: "linear-gradient(165deg, rgba(40,78,155,.28), rgba(12,30,72,.38))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",
+    avatarHalo: "rgba(127,168,255,.45)",
   },
   toty: {
     bg: "/cards/toty.png",
     ink: "#ebcd5b",
     glow: "rgba(90,140,255,.55)",
-    avatarTint: "linear-gradient(165deg, rgba(40,78,155,.28), rgba(12,30,72,.38))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",
+    avatarHalo: "rgba(127,168,255,.45)",
   },
   icon: {
     bg: "/cards/legend.png",
     ink: "#625217",
     glow: "rgba(243,213,128,.5)",
-    avatarTint: "linear-gradient(165deg, rgba(222,188,112,.28), rgba(150,116,46,.34))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(243,214,121,.24) 78%, rgba(120,90,30,.46))",
+    avatarHalo: "rgba(243,214,136,.5)",
   },
 };
 

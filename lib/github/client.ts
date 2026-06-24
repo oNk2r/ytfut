@@ -32,6 +32,7 @@ export interface RawPayload {
   login: string;
   name: string | null;
   avatarUrl: string;
+  location: string | null;
   createdAt: string;
   followers: number;
   publicRepos: number;
@@ -61,6 +62,7 @@ interface UserNode {
   login: string;
   name: string | null;
   avatarUrl: string;
+  location: string | null;
   createdAt: string;
   followers: { totalCount: number };
   repositories: {
@@ -146,6 +148,7 @@ function profileQuery(): string {
         login
         name
         avatarUrl(size: 480)
+        location
         createdAt
         followers { totalCount }
         repositories(ownerAffiliations: OWNER, isFork: false, first: 100, orderBy: { field: STARGAZERS, direction: DESC }) {
@@ -259,6 +262,7 @@ function normalize(user: UserNode, lifetimeContributions: number): RawPayload {
     login: user.login,
     name: user.name,
     avatarUrl: user.avatarUrl,
+    location: user.location,
     createdAt: user.createdAt,
     followers: user.followers.totalCount,
     publicRepos: user.repositories.totalCount,

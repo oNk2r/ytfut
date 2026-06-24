@@ -20,13 +20,12 @@ const FONT_MEDIUM = "var(--font-din-medium), 'Saira Condensed', sans-serif";
 const FONT_COND = "var(--font-din-cond), 'Saira Condensed', sans-serif";
 const FONT_BOLD = "var(--font-din-bold), 'Saira Condensed', sans-serif";
 
-// Avatar feather: fully clear through the middle ~70%, fading to transparent at
-// every border so the photo is frameless on all sides. A horizontal and a
-// vertical fade — each opaque 15%→85% (the clear middle), transparent at the
-// ends — are intersected (a soft rounded block, no diamond pinch). Lower the 15
-// for a larger clear area, raise it for a softer, smaller one.
-const AVATAR_FEATHER = "transparent 0%, #000 15%, #000 85%, transparent 100%";
-const AVATAR_MASK = `linear-gradient(90deg, ${AVATAR_FEATHER}), linear-gradient(180deg, ${AVATAR_FEATHER})`;
+// Avatar feather from the Claude Design card: a radial ellipse (clear centre →
+// transparent edge) intersected with a bottom fade and a top fade. The opaque
+// cores are widened from the design (46→56, 56→62) so the middle reads more
+// obvious/clear. Raise those #000 stops for an even bigger clear centre.
+const AVATAR_MASK =
+  "radial-gradient(ellipse 66% 88% at 52% 40%, #000 56%, transparent 80%), linear-gradient(220deg, #000 70%, transparent 100%), linear-gradient(180deg, transparent 1%, #000 22%)";
 
 const pad2 = (n: number) => String(Math.round(n)).padStart(2, "0");
 
@@ -126,6 +125,7 @@ function PlayerCard({ card }: { card: Card }) {
             maskImage: AVATAR_MASK,
             WebkitMaskComposite: "source-in",
             maskComposite: "intersect",
+            filter: `drop-shadow(0 3cqw 6cqw rgba(0,0,0,.5)) drop-shadow(0 0 5cqw ${t.avatarHalo})`,
           }}
         >
           <img
@@ -137,7 +137,7 @@ function PlayerCard({ card }: { card: Card }) {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "center 18%",
+              objectPosition: "center 20%",
             }}
           />
           <div
@@ -198,18 +198,21 @@ function PlayerCard({ card }: { card: Card }) {
         {card.position}
       </div>
 
-      {/* country flag */}
-      <img
-        src={`/badges/flags/${card.country}.png`}
-        onError={hideOnError}
-        alt={card.country}
-        style={{
-          ...at(17.59, 33.17),
-          width: "14.81%",
-          height: "5.73%",
-          objectFit: "contain",
-        }}
-      />
+      {/* country flag — only when a country was resolved from the GitHub location */}
+      {card.country && (
+        <img
+          src={`/badges/flags/${card.country}.png`}
+          onError={hideOnError}
+          alt={card.country}
+          style={{
+            ...at(17.59, 33.17),
+            width: "14.81%",
+            height: "5.73%",
+            objectFit: "contain",
+            borderRadius: "1cqw",
+          }}
+        />
+      )}
 
       {/* club badge */}
       <img
@@ -217,9 +220,9 @@ function PlayerCard({ card }: { card: Card }) {
         onError={hideOnError}
         alt={card.club}
         style={{
-          ...at(17.59, 42.68),
-          width: "14%",
-          height: "9.3%",
+          ...at(15.5, 40),
+          width: "19%",
+          height: "12%",
           objectFit: "contain",
         }}
       />

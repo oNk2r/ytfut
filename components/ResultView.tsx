@@ -1,62 +1,57 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { toPng } from "html-to-image";
-import type { Card } from "@/lib/scoring/types";
-import { shareUrl } from "@/lib/share";
-import PlayerCard from "./PlayerCard";
-import { RESULT_THEME } from "./finishTheme";
+import { useRef } from "react";
 import { ArrowLeft } from "lucide-react";
+import type { Card } from "@/lib/scoring/types";
+import PlayerCard from "./PlayerCard";
+import CardActions from "./CardActions";
+import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
+import { RESULT_THEME } from "./finishTheme";
 
 interface Props {
   card: Card;
   onBack: () => void;
 }
 
-const ctaClass =
-  "font-display flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl text-[17px] font-extrabold tracking-[.04em] transition";
+// Card width tracks viewport height so the whole report fits one screen; it falls
+// back to a fixed range on the stacked mobile layout.
+const CARD_WIDTH = "clamp(206px, 40vh, 322px)";
 
 export default function ResultView({ card, onBack }: Props) {
-  const [dlLabel, setDlLabel] = useState("DOWNLOAD");
   const captureRef = useRef<HTMLDivElement>(null);
   const theme = RESULT_THEME[card.finish];
 
-  const download = async () => {
-    const node = captureRef.current;
-    if (!node) return;
-    setDlLabel("RENDERING…");
-    try {
-      await document.fonts.ready; // ensure the local FUT fonts are loaded before capture
-      const dataUrl = await toPng(node, { pixelRatio: 3, cacheBust: true });
-      const a = document.createElement("a");
-      a.download = `${card.login}-scouted.png`;
-      a.href = dataUrl;
-      a.click();
-      setDlLabel("DOWNLOADED");
-      setTimeout(() => setDlLabel("DOWNLOAD"), 1800);
-    } catch {
-      setDlLabel("DOWNLOAD");
-    }
-  };
-
   return (
-    <main className="relative z-[2] mx-auto max-w-[1140px] px-[22px] pb-[70px] pt-[clamp(10px,3vh,30px)]">
+    <main className="relative z-[2] mx-auto flex h-[100dvh] w-full max-w-[1280px] flex-col overflow-hidden px-[22px] max-[980px]:h-auto max-[980px]:min-h-[100dvh] max-[980px]:overflow-visible max-[980px]:pb-12">
       <button
         onClick={onBack}
-        className="mb-5 inline-flex items-center gap-[7px] text-[14px] font-semibold text-ink-faint cursor-pointer"
+        className="mb-[8px] mt-[clamp(8px,2vh,18px)] inline-flex shrink-0 items-center gap-[7px] self-start text-[14px] font-semibold text-ink-faint hover:text-ink-soft"
       >
         <ArrowLeft size={18} />
         back
       </button>
 
-      <div className="grid items-start gap-[clamp(28px,5vw,64px)] [grid-template-columns:minmax(280px,360px)_1fr] max-[860px]:grid-cols-1">
-        <div className="flex flex-col items-center gap-6">
+      <div className="shrink-0">
+        <ReportHeader card={card} />
+      </div>
+
+      <div className="mt-[clamp(10px,2vh,22px)] grid min-h-0 flex-1 grid-cols-[1fr_auto_1fr] items-stretch gap-[clamp(14px,2.4vw,40px)] max-[980px]:mt-6 max-[980px]:flex max-[980px]:flex-col max-[980px]:items-center">
+        {/* left — attributes + playstyles */}
+        <div className="flex h-full min-h-0 justify-end overflow-y-auto max-[980px]:order-2 max-[980px]:h-auto max-[980px]:w-full max-[980px]:max-w-[420px] max-[980px]:justify-center">
+          <div className="w-full max-w-[360px]">
+            <AttributesPanel card={card} />
+          </div>
+        </div>
+
+        {/* center — the card + actions */}
+        <div className="flex h-full flex-col items-center  gap-[12px] max-[980px]:order-1 max-[980px]:h-auto">
           <div
             ref={captureRef}
-            className="animate-card-reveal relative w-[min(340px,82vw)]"
+            className="relative"
+            style={{ width: CARD_WIDTH }}
           >
             <div
-              className="animate-glow absolute -inset-[12%] z-0 rounded-full blur-[18px]"
+              className="animate-glow pointer-events-none absolute -inset-[12%] z-0 rounded-full blur-[18px]"
               style={{
                 background: `radial-gradient(closest-side, ${theme.glow}, transparent 72%)`,
               }}
@@ -65,61 +60,15 @@ export default function ResultView({ card, onBack }: Props) {
               <PlayerCard card={card} />
             </div>
           </div>
-          <div className="flex w-[min(340px,82vw)] gap-3">
-            <button
-              onClick={() =>
-                window.open(shareUrl(card), "_blank", "noopener,noreferrer")
-              }
-              className={`${ctaClass} bg-brand text-white shadow-[0_6px_22px_rgba(255,77,94,.34)] hover:bg-brand-hi`}
-            >
-              SHARE ON X
-            </button>
-            <button
-              onClick={download}
-              className={`${ctaClass} border-[1.5px] border-white/15 bg-white/[0.04] text-ink-dim hover:border-white/40 hover:text-white`}
-            >
-              {dlLabel}
-            </button>
+          <div style={{ width: CARD_WIDTH }}>
+            <CardActions card={card} targetRef={captureRef} />
           </div>
         </div>
 
-        <div className="min-w-0">
-          <div className="mb-[14px] flex flex-wrap items-end gap-[14px]">
-            <h2 className="font-display m-0 text-[clamp(34px,5vw,52px)] font-black leading-[.92]">
-              {card.name}
-            </h2>
-            <span
-              className="font-display rounded-md px-[11px] py-[5px] text-[14px] font-bold tracking-[.16em]"
-              style={{ background: theme.chip, color: theme.ink }}
-            >
-              {card.finishLabel} · {card.overall} OVR
-            </span>
-          </div>
-          <p className="m-0 mb-[22px] max-w-[480px] text-[16px] leading-[1.55] text-ink-soft">
-            Lines up at {card.position} — {card.archetype},{" "}
-            {card.archetypeBlurb}.
-          </p>
-
-          <div className="flex flex-col gap-[9px]">
-            {card.breakdown.map((b) => (
-              <div
-                key={b.abbr}
-                className="flex items-center gap-4 rounded-xl border border-white/[0.07] bg-panel px-4 py-[14px]"
-              >
-                <div className="font-display w-[52px] text-center text-[34px] font-black leading-none text-brand">
-                  {b.value}
-                </div>
-                <div className="self-stretch w-px bg-white/[0.08]" />
-                <div className="min-w-0">
-                  <div className="font-display text-[13px] font-bold tracking-[.14em] text-ink-faint">
-                    {b.abbr} · {b.title}
-                  </div>
-                  <div className="text-[14px] leading-[1.4] text-ink-dim">
-                    {b.reason}
-                  </div>
-                </div>
-              </div>
-            ))}
+        {/* right — scouting metrics */}
+        <div className="flex h-full min-h-0 overflow-y-auto max-[980px]:order-3 max-[980px]:h-auto max-[980px]:w-full max-[980px]:max-w-[420px] max-[980px]:justify-center">
+          <div className="w-full max-w-[360px]">
+            <MetricsPanel card={card} />
           </div>
         </div>
       </div>
