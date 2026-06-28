@@ -1,4 +1,4 @@
-import { countryFromLocation } from "../geo";
+import { countryForLogin } from "../geo";
 import { topLanguageLogo } from "../github/languages";
 import { deriveMetrics, deriveSkillMoves, deriveStyle, deriveWeakFoot, deriveWorkRate } from "./attributes";
 import { FINISH_LABELS, K, STATS, WEIGHTS } from "./constants";
@@ -171,13 +171,14 @@ export function buildCard(s: Signals): Card {
   const weak = deriveWeakFoot(stats);
   const work = deriveWorkRate(stats);
   const style = deriveStyle(s);
-  // Most-used language → catalog logo (walks past languages without one).
+  // Headline language's own catalog logo (null when it has none) — never a
+  // different language's icon, so the logo always matches `topLanguage`.
   const languageLogo = topLanguageLogo(s.rankedLanguages ?? []);
   return {
     login: s.login,
     name: s.name,
     avatarUrl: s.avatarUrl,
-    country: countryFromLocation(s.location) ?? "",
+    country: countryForLogin(s.login, s.location) ?? "",
     club: finish === "icon" ? "legends" : "neutral",
     stats,
     position,

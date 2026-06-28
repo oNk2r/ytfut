@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { languageLogoUrl, logoSlugFor, rankLanguages, topLanguageLogo } from "./languages";
 
-// We test the language DECISIONS: deterministic ranking, the GitHub-name→slug
-// map (incl. "C++"/"C#" display names and uncovered languages), and the
-// fallback walk to the first ranked language that actually has a logo.
+// We test the language DECISIONS: deterministic ranking with markup demotion, the
+// GitHub-name→Devicon-id map (incl. display names + the Go wordmark), and that the
+// logo always matches the headline language (no fall-through to a different icon).
 
 const repos = (...langs: (string | null)[]) => langs.map((language) => ({ language }));
 
@@ -41,44 +41,40 @@ describe("rankLanguages", () => {
 });
 
 describe("logoSlugFor", () => {
-  it("maps catalog languages case-insensitively", () => {
-    expect(logoSlugFor("TypeScript")).toBe("typescript");
-    expect(logoSlugFor("typescript")).toBe("typescript");
-    expect(logoSlugFor("Python")).toBe("python");
+  it("maps languages to Devicon ids, case-insensitively", () => {
+    expect(logoSlugFor("TypeScript")).toBe("typescript-original");
+    expect(logoSlugFor("python")).toBe("python-original");
+    expect(logoSlugFor("Rust")).toBe("rust-original"); // covered now (was a catalog miss)
   });
 
-  it("maps GitHub display names to slugs", () => {
-    expect(logoSlugFor("C++")).toBe("cpp");
-    expect(logoSlugFor("C#")).toBe("csharp");
+  it("maps GitHub display names to Devicon dirs", () => {
+    expect(logoSlugFor("C++")).toBe("cplusplus-original");
+    expect(logoSlugFor("C#")).toBe("csharp-original");
   });
 
-  it("returns null for languages not in the catalog", () => {
-    for (const name of ["Rust", "Shell", "Jupyter Notebook", "Dart", "Vue", "Dockerfile"]) {
+  it("uses the Go wordmark (not the gopher)", () => {
+    expect(logoSlugFor("Go")).toBe("go-original-wordmark");
+  });
+
+  it("returns null for languages Devicon doesn't cover", () => {
+    for (const name of ["Fortran", "COBOL", "Brainfuck"]) {
       expect(logoSlugFor(name)).toBeNull();
     }
   });
 });
 
 describe("topLanguageLogo", () => {
-  it("returns the top language when it has a logo", () => {
-    expect(topLanguageLogo(["TypeScript", "Rust"])).toEqual({ name: "TypeScript", slug: "typescript" });
+  it("returns the headline language's own logo", () => {
+    expect(topLanguageLogo(["TypeScript", "Rust"])).toEqual({ name: "TypeScript", slug: "typescript-original" });
+    expect(topLanguageLogo(["Rust", "TypeScript"])).toEqual({ name: "Rust", slug: "rust-original" });
   });
 
-  it("falls back to the next ranked language with a logo", () => {
-    expect(topLanguageLogo(["Rust", "TypeScript"])).toEqual({ name: "TypeScript", slug: "typescript" });
-  });
-
-  it("returns null when no ranked language has a logo", () => {
-    expect(topLanguageLogo(["Rust", "Shell"])).toBeNull();
-  });
-
-  it("never uses a styling/markup logo when a programming language exists", () => {
-    expect(topLanguageLogo(["Rust", "CSS"])).toBeNull();
-    expect(topLanguageLogo(["Python", "CSS"])).toEqual({ name: "Python", slug: "python" });
+  it("does NOT fall back — a top language Devicon lacks gets no logo", () => {
+    expect(topLanguageLogo(["Fortran", "TypeScript"])).toBeNull();
   });
 
   it("uses a styling logo only when there's no programming language", () => {
-    expect(topLanguageLogo(["CSS", "HTML"])).toEqual({ name: "CSS", slug: "css" });
+    expect(topLanguageLogo(["CSS", "HTML"])).toEqual({ name: "CSS", slug: "css3-original" });
   });
 
   it("returns null for an empty list", () => {
@@ -87,9 +83,18 @@ describe("topLanguageLogo", () => {
 });
 
 describe("languageLogoUrl", () => {
-  it("builds the jsDelivr PNG path for a slug", () => {
-    expect(languageLogoUrl("cpp")).toBe(
-      "https://cdn.jsdelivr.net/npm/programming-languages-logos/src/cpp/cpp.png",
+  it("builds the Devicon jsDelivr SVG path (dir = first segment)", () => {
+    expect(languageLogoUrl("go-original-wordmark")).toBe(
+      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg",
+    );
+    expect(languageLogoUrl("cplusplus-original")).toBe(
+      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
+    );
+  });
+
+  it("overrides C to the flat catalog (Devicon's c-original clashes with the card)", () => {
+    expect(languageLogoUrl("c-original")).toBe(
+      "https://cdn.jsdelivr.net/npm/programming-languages-logos/src/c/c.png",
     );
   });
 });

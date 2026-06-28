@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
 import CardActions from "./CardActions";

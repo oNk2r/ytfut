@@ -1,45 +1,75 @@
 // Top-language → logo resolution. Pure, framework-agnostic (no DOM): given the
 // owned-repo list, rank languages by how many repos use each as their primary,
-// then resolve a logo from the open `programming-languages-logos` catalog,
-// served by jsDelivr.
+// then resolve a colored logo from Devicon (https://devicon.dev), served by
+// jsDelivr — ~150 languages, far more than the old 18-icon catalog (so Rust, Go,
+// Vue, Dart, Elixir… all resolve now).
 //
 // IMPORTANT: GitHub's `primaryLanguage` is the *byte-largest* language per repo,
-// so a TypeScript/Python project with a big bundled/generated CSS or HTML file
-// is reported as CSS/HTML. To keep the card's headline language meaningful we
-// DEMOTE styling/markup/data/prose languages — the top slot goes to a real
-// programming language whenever the dev has one (see NON_HEADLINE / rankLanguages).
+// so a TypeScript/Python project with a big bundled/generated CSS or HTML file is
+// reported as CSS/HTML. We DEMOTE styling/markup/data/prose languages so the
+// card's headline goes to a real programming language (see NON_HEADLINE).
 //
-// The catalog is small — exactly these 18 slugs (from its src/languages.json) —
-// so most GitHub languages (Rust, Shell, Dart, Vue, Jupyter Notebook…) have NO
-// logo. GitHub also returns DISPLAY names ("C++", "C#") that don't equal slugs,
-// hence the explicit name→slug map below; anything not in it has no logo and
-// falls through to the next ranked language (see topLanguageLogo).
+// Devicon uses `<dir>/<dir>-<variant>.svg`. We store the full icon id (e.g.
+// "rust-original") and derive the dir from its first segment. Variant is usually
+// "-original" (full colour); Go uses "-original-wordmark" (the "Go" word, not the
+// gopher). GitHub display names that differ from Devicon dirs are mapped below.
 
-const CDN_BASE = "https://cdn.jsdelivr.net/npm/programming-languages-logos/src";
+const CDN_BASE = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons";
 
-// GitHub primaryLanguage.name (lowercased) → catalog slug. ONLY the 18 catalog
-// languages appear here (plus the "C++"/"C#" display-name aliases). Keep this
-// list in sync with the catalog's src/languages.json.
+// Devicon draws a handful of languages in a style that clashes with the card art
+// — notably C, whose `c-original` is a beveled teal badge that reads as a muddy
+// blob over the player photo. For those we override back to the flat
+// `programming-languages-logos` catalog (the old 18-icon source), whose PNGs are
+// clean, full-colour, transparent — exactly how the card looked before. Keyed by
+// Devicon slug → full logo URL; add a language here if its Devicon icon looks bad.
+const LOGO_URL_OVERRIDES: Record<string, string> = {
+  "c-original": "https://cdn.jsdelivr.net/npm/programming-languages-logos/src/c/c.png",
+};
+
+// GitHub primaryLanguage.name (lowercased) → Devicon icon id ("<dir>-<variant>").
+// Anything not here has no logo and resolves to null (the name still shows).
 export const LANGUAGE_SLUGS: Record<string, string> = {
-  c: "c",
-  "c++": "cpp",
-  cpp: "cpp",
-  "c#": "csharp",
-  csharp: "csharp",
-  css: "css",
-  go: "go",
-  haskell: "haskell",
-  html: "html",
-  java: "java",
-  javascript: "javascript",
-  kotlin: "kotlin",
-  lua: "lua",
-  php: "php",
-  python: "python",
-  r: "r",
-  ruby: "ruby",
-  swift: "swift",
-  typescript: "typescript",
+  javascript: "javascript-original",
+  typescript: "typescript-original",
+  python: "python-original",
+  java: "java-original",
+  c: "c-original",
+  "c++": "cplusplus-original",
+  cpp: "cplusplus-original",
+  "c#": "csharp-original",
+  csharp: "csharp-original",
+  go: "go-original-wordmark", // the "Go" word, not the gopher
+  rust: "rust-original",
+  ruby: "ruby-original",
+  php: "php-original",
+  swift: "swift-original",
+  kotlin: "kotlin-original",
+  dart: "dart-original",
+  scala: "scala-original",
+  elixir: "elixir-original",
+  haskell: "haskell-original",
+  lua: "lua-original",
+  r: "r-original",
+  shell: "bash-original",
+  vue: "vuejs-original",
+  svelte: "svelte-original",
+  html: "html5-original",
+  css: "css3-original",
+  scss: "sass-original",
+  sass: "sass-original",
+  clojure: "clojure-original",
+  erlang: "erlang-original",
+  perl: "perl-original",
+  "objective-c": "objectivec-plain",
+  zig: "zig-original",
+  julia: "julia-original",
+  ocaml: "ocaml-original",
+  powershell: "powershell-original",
+  dockerfile: "docker-original",
+  "jupyter notebook": "jupyter-original",
+  crystal: "crystal-original",
+  solidity: "solidity-original",
+  nim: "nim-original",
 };
 
 // Styling / markup / prose / data / config languages (lowercased). These inflate
@@ -64,7 +94,7 @@ export const isHeadlineLanguage = (name: string): boolean => !NON_HEADLINE.has(n
 
 export interface LanguageLogo {
   name: string; // the GitHub language name this logo represents
-  slug: string; // catalog slug
+  slug: string; // Devicon icon id ("<dir>-<variant>")
 }
 
 // Counts non-null primary languages and orders them by repo count (desc) with a
@@ -84,28 +114,24 @@ export function rankLanguages(repos: { language: string | null }[]): string[] {
   ].map(([name]) => name);
 }
 
-// Case-insensitive lookup of a catalog slug for a GitHub language name.
+// Case-insensitive lookup of a Devicon icon id for a GitHub language name.
 export function logoSlugFor(name: string): string | null {
   return LANGUAGE_SLUGS[name.toLowerCase()] ?? null;
 }
 
-// Walks the ranked names and returns the first with a catalog logo — so a
-// Rust-then-TypeScript dev shows the TypeScript logo rather than nothing. A
-// styling/markup language only provides the logo when the dev has NO programming
-// language at all (so a Rust+CSS dev shows no logo, not a CSS one).
+// The logo for the HEADLINE language only (rankedNames[0]) — never a different
+// language's icon. This keeps the logo in sync with the displayed top language:
+// a Rust-#1 dev shows the Rust logo, and a language Devicon lacks shows no logo
+// (the name still appears) rather than a mismatched icon.
 export function topLanguageLogo(rankedNames: string[]): LanguageLogo | null {
-  const hasHeadline = rankedNames.some(isHeadlineLanguage);
-  for (const name of rankedNames) {
-    if (hasHeadline && !isHeadlineLanguage(name)) continue;
-    const slug = logoSlugFor(name);
-    if (slug) return { name, slug };
-  }
-  return null;
+  const top = rankedNames[0];
+  const slug = top ? logoSlugFor(top) : null;
+  return slug ? { name: top, slug } : null;
 }
 
-// jsDelivr URL for a catalog slug. PNG (not SVG): the catalog's PNGs are
-// full-colour with transparent backgrounds and a solid logo body, so they read
-// on the light card art — the SVGs are light/white fills that vanish on it.
+// jsDelivr URL for a Devicon icon id. The dir is the id's first segment
+// ("rust-original" → icons/rust/rust-original.svg). Colored SVG (Devicon's
+// `-original` variants keep the brand colours, so they read on the card art).
 export function languageLogoUrl(slug: string): string {
-  return `${CDN_BASE}/${slug}/${slug}.png`;
+  return LOGO_URL_OVERRIDES[slug] ?? `${CDN_BASE}/${slug.split("-")[0]}/${slug}.svg`;
 }
