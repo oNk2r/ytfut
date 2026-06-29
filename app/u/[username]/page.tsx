@@ -4,10 +4,8 @@ import { after } from "next/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Background from "@/components/Background";
-import { fetchProfile, type GithubError } from "@/lib/github/client";
-import { signalsFromPayload } from "@/lib/github/signals";
-import { buildCard } from "@/lib/scoring/engine";
-import { SAMPLE_CARDS } from "@/lib/github/samples";
+import { type GithubError } from "@/lib/github/client";
+import { scoutCard } from "@/lib/scout";
 import { countryFromHeaders } from "@/lib/ipgeo";
 import { needsIpFallback, pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
@@ -17,17 +15,12 @@ import { getCardImage, signLogin } from "@/lib/cardImage";
 
 export const dynamic = "force-dynamic"; // per-user, token-gated, always fresh
 
-// Memoised per request so generateMetadata and the page share one fetch.
+// Memoised per request so generateMetadata and the page share one scout. The
+// cross-request cache (and the tokenless sample fallback) live in lib/scout.
 const loadCard = cache(
   async (username: string): Promise<{ card: Card } | { error: GithubError }> => {
-    // Tokenless demo: serve the baked sample cards by login (mirrors the API
-    // route) so the home-fan samples resolve without a GitHub token configured.
-    if (!process.env.GITHUB_TOKEN) {
-      const sample = SAMPLE_CARDS.find((c) => c.login.toLowerCase() === username.toLowerCase());
-      if (sample) return { card: sample };
-    }
     try {
-      return { card: buildCard(signalsFromPayload(await fetchProfile(username))) };
+      return { card: await scoutCard(username) };
     } catch (e) {
       return { error: e as GithubError };
     }

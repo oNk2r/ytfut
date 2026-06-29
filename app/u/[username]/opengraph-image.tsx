@@ -1,9 +1,6 @@
 import { ImageResponse } from "next/og";
 import { after } from "next/server";
-import { fetchProfile } from "@/lib/github/client";
-import { signalsFromPayload } from "@/lib/github/signals";
-import { buildCard } from "@/lib/scoring/engine";
-import { SAMPLE_CARDS } from "@/lib/github/samples";
+import { scoutCard } from "@/lib/scout";
 import { pickFlag } from "@/lib/flagPriority";
 import { deEmDash } from "@/lib/text";
 import { recordScout } from "@/lib/analytics";
@@ -35,12 +32,8 @@ const STAT_ORDER: { k: StatKey; l: string }[] = [
 ];
 
 async function tryCard(username: string): Promise<Card | null> {
-  if (!process.env.GITHUB_TOKEN) {
-    const sample = SAMPLE_CARDS.find((c) => c.login.toLowerCase() === username.toLowerCase());
-    if (sample) return sample;
-  }
   try {
-    return buildCard(signalsFromPayload(await fetchProfile(username)));
+    return await scoutCard(username);
   } catch {
     return null;
   }

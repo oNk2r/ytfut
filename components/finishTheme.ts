@@ -9,7 +9,7 @@ export function rgba(hex: string, a: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-// Each finish maps to a FUT background PNG (public/cards), the text ink the
+// Each finish maps to a FUT background image (public/cards), the text ink the
 // Python generator uses for that card, a glow for the card's drop-shadow, and
 // the avatar filter from the Claude Design card: avatarTint is a RADIAL tint —
 // transparent in the centre so the photo shows clearly, ramping to the card
@@ -46,14 +46,14 @@ export const CARD_THEME: Record<Finish, CardTheme> = {
     avatarHalo: "rgba(243,214,121,.45)",
   },
   totw: {
-    bg: "/cards/toty.png",
+    bg: "/cards/toty.webp",
     ink: "#ebcd5b",
     glow: "rgba(90,140,255,.55)",
     avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",
     avatarHalo: "rgba(127,168,255,.45)",
   },
   toty: {
-    bg: "/cards/toty.png",
+    bg: "/cards/toty.webp",
     ink: "#ebcd5b",
     glow: "rgba(90,140,255,.55)",
     avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",

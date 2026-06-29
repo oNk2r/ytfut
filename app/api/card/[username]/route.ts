@@ -1,7 +1,5 @@
-import { fetchProfile, type GithubError } from "@/lib/github/client";
-import { signalsFromPayload } from "@/lib/github/signals";
-import { buildCard } from "@/lib/scoring/engine";
-import { SAMPLE_CARDS } from "@/lib/github/samples";
+import { type GithubError } from "@/lib/github/client";
+import { scoutCard } from "@/lib/scout";
 import { getViewerCountry } from "@/lib/ipgeo";
 import { needsIpFallback, pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
@@ -19,18 +17,10 @@ async function resolveCountry(card: Card, override: string | null, req: Request)
 export async function GET(req: Request, { params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const override = new URL(req.url).searchParams.get("country");
-  // Tokenless preview/demo fallback: serve the baked sample cards by login so
-  // the app is explorable (and the home-fan samples are clickable) without a
-  // GitHub token configured.
-  if (!process.env.GITHUB_TOKEN) {
-    const sample = SAMPLE_CARDS.find((c) => c.login.toLowerCase() === username.toLowerCase());
-    if (sample) {
-      after(() => recordScout());
-      return Response.json(await resolveCountry(sample, override, req));
-    }
-  }
+  // scoutCard handles the Redis cache and the tokenless sample fallback; here we
+  // just resolve the visitor's flag and record the scout after the response.
   try {
-    const card = buildCard(signalsFromPayload(await fetchProfile(username)));
+    const card = await scoutCard(username);
     after(() => recordScout());
     return Response.json(await resolveCountry(card, override, req));
   } catch (e) {
