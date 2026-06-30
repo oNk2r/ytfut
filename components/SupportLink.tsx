@@ -20,9 +20,7 @@ export default function SupportLink({ stars }: { stars: number | null }) {
       rel="noopener"
       className="inline-flex items-center gap-[9px] rounded-[10px] px-[15px] py-[9px] text-[13.5px] font-semibold text-ink-faint transition hover:bg-white/5 hover:text-ink"
     >
-      {/* Real repo stars; the count only shows once it's worth showing
-          (>= 50), otherwise it's just a plain GitHub link. */}
-      {stars !== null && stars >= 50 ? (
+      {stars !== null && stars >= 10 ? (
         <>
           Support the project
           <span className="inline-flex items-center gap-[5px]">

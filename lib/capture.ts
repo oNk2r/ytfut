@@ -19,11 +19,25 @@ const nextFrame = () =>
 export async function renderCardImage<T>(
   node: HTMLElement,
   capture: (target: HTMLElement) => Promise<T>,
+  opts: { transparent?: boolean } = {},
 ): Promise<T> {
   const clone = node.cloneNode(true) as HTMLElement;
   clone.classList.add(SIGNATURE_CLASS);
   clone.style.width = `${node.offsetWidth}px`;
   clone.style.margin = "0";
+
+  // Transparent cut-out: strip everything that paints OUTSIDE the card silhouette
+  // — the tier glow halo and the card frame's own drop-shadow/glow filter — so the
+  // copy is just the card on full transparency (the card art's corners are already
+  // transparent). The signature stays.
+  if (opts.transparent) {
+    clone.querySelectorAll<HTMLElement>(".animate-glow").forEach((el) => {
+      el.style.display = "none";
+    });
+    clone.querySelectorAll<HTMLElement>(".gitfut-card-frame").forEach((el) => {
+      el.style.filter = "none";
+    });
+  }
 
   // 0×0 clip holder pinned at the viewport origin: the clone paints (so images
   // decode and html-to-image captures it) but is clipped out of view on screen.

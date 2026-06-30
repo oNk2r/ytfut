@@ -65,11 +65,15 @@ const EXPORTS: ExportAction[] = [
       // activation lapse → NotAllowedError. The browser awaits the blob itself.
       await navigator.clipboard.write([
         new ClipboardItem({
-          "image/png": renderCardImage(node, async (n) => {
-            const blob = await toBlob(n, RENDER_OPTS);
-            if (!blob) throw new Error("render returned no image");
-            return blob;
-          }),
+          "image/png": renderCardImage(
+            node,
+            async (n) => {
+              const blob = await toBlob(n, RENDER_OPTS);
+              if (!blob) throw new Error("render returned no image");
+              return blob;
+            },
+            { transparent: true },
+          ),
         }),
       ]);
     },

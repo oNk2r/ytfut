@@ -91,7 +91,7 @@ function PlayerCard({ card }: { card: Card }) {
   });
 
   return (
-    <div style={wrap}>
+    <div className="gitfut-card-frame" style={wrap}>
       {/* tier background art */}
       <img
         src={t.bg}
