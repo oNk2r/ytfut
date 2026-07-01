@@ -6,7 +6,6 @@ import type { Card } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
 import StoryFrame from "./StoryFrame";
 import CardActions from "./CardActions";
-import CardImageSync from "./CardImageSync";
 import FlagPicker from "./FlagPicker";
 import Mascot from "./Mascot";
 import FooterCredit from "./FooterCredit";
@@ -22,10 +21,6 @@ interface Props {
   onBack: () => void;
   /** Edit the card's flag from the report (click-the-flag picker). */
   onCountryChange: (code: string) => void;
-  /** HMAC that authorises this browser to upload the card's share image. */
-  shareSig?: string;
-  /** When true (image missing/stale), render + upload the share image to Blob. */
-  generateShare?: boolean;
   /** Repo stars for the footer credit's star/repo link (null = no count shown). */
   stars?: number | null;
   /** GitHub-derived flag; share links only carry ?country= when it's overridden. */
@@ -47,8 +42,6 @@ export default function ResultView({
   card,
   onBack,
   onCountryChange,
-  shareSig,
-  generateShare,
   stars,
   canonicalCountry = "",
 }: Props) {
@@ -203,10 +196,6 @@ export default function ResultView({
       <footer className="relative z-[2] mt-auto flex flex-none items-center justify-center p-[clamp(12px,2.6vh,24px)]">
         <FooterCredit />
       </footer>
-
-      {generateShare && shareSig && (
-        <CardImageSync targetRef={captureRef} login={card.login} sig={shareSig} />
-      )}
 
       {/* Off-screen story canvas (1080×1920). Parked in a 0×0 clip holder at the
           viewport origin — NOT display:none — so its card art/avatar/fonts paint

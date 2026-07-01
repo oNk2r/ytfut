@@ -10,7 +10,6 @@ import { pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
 import type { Card } from "@/lib/scoring/types";
 import ScoutRoute from "./ScoutRoute";
-import { getCardImage, signLogin } from "@/lib/cardImage";
 
 export const dynamic = "force-dynamic"; // per-user, token-gated, always fresh
 
@@ -30,15 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const { username } = await params;
   const res = await loadCard(username);
   if ("card" in res) {
-    const img = await getCardImage(res.card.login);
     return {
       title: `${res.card.name} — ${res.card.overall} ${res.card.finishLabel} · GitFut`,
       description: `${res.card.name} scouted on GitFut: ${res.card.overall} OVR ${res.card.position}, ${res.card.archetype}.`,
       alternates: { canonical: `/${res.card.login}` },
       twitter: { card: "summary_large_image" },
-      // Exact card (rendered client-side, stored in Blob) once it exists; until
-      // then the file-convention opengraph-image.tsx provides the fallback.
-      openGraph: img ? { images: [img.url] } : undefined,
+      // og:image comes from the file-convention opengraph-image.tsx (the landscape
+      // unfurl card). The portrait FUT card lives at /<login>.png for README embeds.
     };
   }
   // Not a real profile — keep these soft-404s out of the index.
@@ -83,33 +80,18 @@ export default async function Page({
   // country. No IP/geo fallback — we never put the *viewer's* country on someone
   // else's card.
   let card: Card | null = "card" in res ? res.card : null;
-  let generateShare = false;
-  let shareSig = "";
   let canonicalCountry = ""; // GitHub-derived flag; share links omit ?country= unless overridden
   if (card) {
     after(() => recordScout()); // analytics, flushed after the response (serverless-safe)
     canonicalCountry = pickFlag(null, card.country) ?? ""; // GitHub-derived only
     const displayCountry = pickFlag(override, card.country) ?? "";
     card = { ...card, country: displayCountry };
-    const img = await getCardImage(card.login);
-    // Only ever cache the canonical card in Blob — never a per-visitor flag
-    // override — so the shared/embedded image is identical for everyone. The
-    // override stays a live, personal tweak; picker-time overrides are cancelled
-    // client-side in ScoutRoute so they can't taint the capture either.
-    generateShare = (!img || img.stale) && displayCountry === canonicalCountry;
-    shareSig = signLogin(card.login);
   }
   return (
     <div className="relative min-h-screen overflow-x-hidden text-ink">
       <Background />
       {card ? (
-        <ScoutRoute
-          card={card}
-          shareSig={shareSig}
-          generateShare={generateShare}
-          stars={stars}
-          canonicalCountry={canonicalCountry}
-        />
+        <ScoutRoute card={card} stars={stars} canonicalCountry={canonicalCountry} />
       ) : (
         <NotScouted username={username} error={(res as { error: GithubError }).error} />
       )}
