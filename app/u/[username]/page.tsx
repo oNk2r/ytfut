@@ -43,8 +43,11 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
 }
 
 function NotScouted({ username, error }: { username: string; error: GithubError }) {
-  const message =
-    error.type === "notfound"
+  const rateLimited = error.type === "ratelimit";
+  const heading = rateLimited ? "The scouts are gassed" : "No file found";
+  const message = rateLimited
+    ? `You lot went viral and stormed the training ground all at once — GitHub just showed us a yellow card for time-wasting. Give the scouts a couple minutes to catch their breath, then send @${username} back on.`
+    : error.type === "notfound"
       ? `There's no GitHub user named @${username}.`
       : error.type === "invalid"
         ? `“${username}” isn't a valid GitHub username.`
@@ -52,13 +55,13 @@ function NotScouted({ username, error }: { username: string; error: GithubError 
   return (
     <main className="relative z-[2] mx-auto flex min-h-screen max-w-[560px] flex-col items-center justify-center px-6 text-center">
       <div className="font-display text-[12px] font-bold tracking-[.3em] text-brand">SCOUT REPORT</div>
-      <h1 className="font-display mt-3 text-[clamp(30px,6vw,48px)] font-black leading-[.95]">No file found</h1>
+      <h1 className="font-display mt-3 text-[clamp(30px,6vw,48px)] font-black leading-[.95]">{heading}</h1>
       <p className="mt-3 text-[15.5px] leading-[1.5] text-ink-soft">{message}</p>
       <Link
         href="/"
         className="font-display mt-7 inline-flex h-[46px] items-center rounded-xl bg-brand px-6 text-[16px] tracking-[.06em] text-[#04130a] transition hover:bg-brand-hi"
       >
-        SCOUT SOMEONE ELSE
+        {rateLimited ? "BACK TO THE BENCH" : "SCOUT SOMEONE ELSE"}
       </Link>
     </main>
   );
