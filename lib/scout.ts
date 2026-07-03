@@ -23,7 +23,7 @@ import type { Card } from "./scoring/types";
 // that changes buildCard's output shape or scoring invalidate every entry at
 // once (bump it) instead of serving stale-shaped cards until their TTL lapses.
 const CACHE_VERSION = "v1";
-const CARD_TTL_SECONDS = 45 * 60; // 45 min — GitHub stats move slowly; fresh enough.
+const CARD_TTL_SECONDS = 120 * 60; // 2h — GitHub stats move slowly; longer TTL = fewer refetches of hot profiles under load.
 
 const normalizeLogin = (username: string) => username.trim().replace(/^@/, "").toLowerCase();
 const keyFor = (login: string) => `gitfut:card:${CACHE_VERSION}:${login}`;
