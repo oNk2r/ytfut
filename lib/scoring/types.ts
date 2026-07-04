@@ -3,7 +3,7 @@ export type Stats = Record<StatKey, number>;
 export type Profile = Record<StatKey, number>;
 
 export type Finish = "bronze" | "silver" | "gold" | "totw" | "toty" | "icon" | "founder";
-export type Position = "ST" | "RW" | "CAM" | "CM" | "CDM" | "CB";
+export type Position = "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LW" | "RW" | "ST";
 export type Family = "Forward" | "Playmaker" | "Anchor";
 
 export interface Signals {
@@ -73,6 +73,7 @@ export interface Card {
   club: string;
   stats: Stats;
   position: Position;
+  positionConfidence: number;
   family: Family;
   baseOVR: number;
   overall: number;

@@ -5,7 +5,7 @@ export const STATS: StatKey[] = ["pac", "sho", "pas", "dri", "def", "phy"];
 export const ATTACK_STATS: StatKey[] = ["pac", "sho", "pas", "dri"];
 
 export const K = {
-  magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -8.5, lo: 48, hi: 82 },
+  magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -8.5, lo: 34, hi: 82 },
   tension: {
     alpha: 0.7,
     pairs: [

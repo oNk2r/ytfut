@@ -88,26 +88,59 @@ function spike(p: Profile, c: number): Stats {
   return stats;
 }
 
-function positionFromShape(st: Stats): { position: Position; family: Family } {
-  const fam: Record<Family, number> = {
-    Forward: st.sho + st.pac,
-    Playmaker: st.pas + st.dri,
-    Anchor: st.def + st.phy,
-  };
-  const family = (Object.keys(fam) as Family[]).sort((a, b) => fam[b] - fam[a])[0];
-  const position: Position =
-    family === "Forward"
-      ? st.pac > st.sho
-        ? "RW"
-        : "ST"
-      : family === "Playmaker"
-        ? st.pas > st.dri
-          ? "CM"
-          : "CAM"
-        : st.def > st.phy
-          ? "CB"
-          : "CDM";
-  return { position, family };
+const POSITION_FAMILY: Record<Position, Family> = {
+  GK: "Anchor",
+  CB: "Anchor",
+  LB: "Anchor",
+  RB: "Anchor",
+  CDM: "Anchor",
+  CM: "Playmaker",
+  CAM: "Playmaker",
+  LW: "Forward",
+  RW: "Forward",
+  ST: "Forward"
+};
+
+const ARCHETYPES: Record<Position, { name: string; blurb: string }> = {
+  GK: { name: "Evergreen Legend", blurb: "exceptional longevity and presence — steady and trusted channel anchor" },
+  CB: { name: "Reliable Veteran", blurb: "unshakeable foundation — defensive stability with solid physical presence" },
+  LB: { name: "Overlap Engine", blurb: "dynamic wingback — supports play transitions with high pace and defensive alignment" },
+  RB: { name: "Overlap Engine", blurb: "dynamic wingback — supports play transitions with high pace and defensive alignment" },
+  CDM: { name: "Community Anchor", blurb: "the midfield engine — controls the community tempo with high passing and defensive support" },
+  CM: { name: "Balanced Creator", blurb: "complete midfielder — contributes across all facets of content with balanced attributes" },
+  CAM: { name: "Creative Playmaker", blurb: "playmaker in the pocket — creates opportunities with elite passing and dribbling versatility" },
+  LW: { name: "Trend Sprinter", blurb: "explosive winger — creates massive content waves with high pace and versatility" },
+  RW: { name: "Trend Sprinter", blurb: "explosive winger — creates massive content waves with high pace and versatility" },
+  ST: { name: "Viral Finisher", blurb: "clinical content hitter — dominates the space with massive virality and views" }
+};
+
+function positionFromShape(subs: number): { position: Position; family: Family; confidence: number } {
+  let position: Position = "GK";
+
+  if (subs >= 25_000_000) {
+    position = "ST";
+  } else if (subs >= 10_000_000) {
+    position = "RW";
+  } else if (subs >= 5_000_000) {
+    position = "LW";
+  } else if (subs >= 1_000_000) {
+    position = "CAM";
+  } else if (subs >= 500_000) {
+    position = "CM";
+  } else if (subs >= 100_000) {
+    position = "CDM";
+  } else if (subs >= 50_000) {
+    position = "RB";
+  } else if (subs >= 10_000) {
+    position = "LB";
+  } else if (subs >= 1_000) {
+    position = "CB";
+  } else {
+    position = "GK";
+  }
+
+  const family = POSITION_FAMILY[position];
+  return { position, family, confidence: 100 };
 }
 
 // §3.6 — position-weighted, never a flat mean; stats alone cap at 88.
@@ -139,29 +172,8 @@ function pickFinish(overall: number, L: number, recentSpike: boolean, login: str
   return "bronze";
 }
 
-function archetypeFromShape(st: Stats, finish: Finish): Archetype {
-  if (finish === "icon")
-    return { name: "Galáctico", blurb: "hall-of-fame creator — high and balanced influence earned over years" };
-  const top = [...STATS].sort((a, b) => st[b] - st[a]);
-  const peak = st[top[0]];
-  const top2 = top.slice(0, 2);
-  const has = (a: StatKey, b: StatKey) => top2.includes(a) && top2.includes(b);
-  if (top[0] === "sho" && st.def < peak - 18 && st.pas < peak - 12)
-    return { name: "Poacher", blurb: "clinical viral hitter — high view-to-sub content pull" };
-  if (top[0] === "pas" && top2.includes("def"))
-    return { name: "Regista", blurb: "deep community linker — drives high comments and subscriber engagement" };
-  if (top[0] === "def" && top2.includes("pas"))
-    return { name: "Libero", blurb: "brand-safe creator — highly liked, stable and clean brand image" };
-  if (top[0] === "dri")
-    return { name: "Fantasista", blurb: "versatile entertainer — content covers multiple niches and categories" };
-  if (has("phy", "sho")) return { name: "Target Man", blurb: "massive total output and view counts" };
-  if (has("phy", "pac") || has("pac", "dri"))
-    return { name: "Mezzala", blurb: "relentless upload engine — consistent frequent shipping" };
-  if (top[0] === "def")
-    return { name: "Libero", blurb: "brand-safe creator — highly liked, stable and clean brand image" };
-  if (top[0] === "sho")
-    return { name: "Poacher", blurb: "clinical viral hitter — high view-to-sub content pull" };
-  return { name: "Mezzala", blurb: "relentless upload engine — consistent frequent shipping" };
+function archetypeFromShape(position: Position): Archetype {
+  return ARCHETYPES[position];
 }
 
 function clampOVRByRequirements(overall: number, s: Signals, L: number): number {
@@ -198,7 +210,7 @@ function clampOVRByRequirements(overall: number, s: Signals, L: number): number 
 
 export function buildCard(s: Signals): Card {
   const stats = spike(applyTension(zscore(rawStats(s))), center(s));
-  const { position, family } = positionFromShape(stats);
+  const { position, family, confidence } = positionFromShape(s.subscribers);
   const baseOVR = weightedOVR(stats, family);
   const L = legacyScore(s);
 
@@ -208,7 +220,7 @@ export function buildCard(s: Signals): Card {
   overall = clampOVRByRequirements(overall, s, L);
 
   const finish: Finish = pickFinish(overall, L, s.recent_spike, s.login);
-  const archetype = archetypeFromShape(stats, finish);
+  const archetype = archetypeFromShape(position);
   const skill = deriveSkillMoves(s);
   const weak = deriveWeakFoot(stats);
   const work = deriveWorkRate(stats);
@@ -223,6 +235,7 @@ export function buildCard(s: Signals): Card {
     club: finish === "icon" ? "legends" : "neutral",
     stats,
     position,
+    positionConfidence: confidence,
     family,
     baseOVR,
     overall,

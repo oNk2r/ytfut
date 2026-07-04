@@ -11,25 +11,6 @@ const READS = [
   { abbr: "PHY", gloss: "Channel longevity (age) and total views over active years" },
 ];
 
-const LAWS = [
-  {
-    kicker: "MEASURED AGAINST YOU",
-    lead: "Your own curve, not the world's.",
-    body: "Each stat is weighed against the rest of your profile, so a high one marks where you stand out and a low one where you don't. That's why your weakest area can read lower than the raw number suggests — the card grades you on you.",
-  },
-  {
-    kicker: "EVERY CARD HAS A SHAPE",
-    lead: "Nobody's elite at everything.",
-    body: "Your strongest signals get pushed up and your weakest pulled down, so the card leans instead of sitting flat. That lean is what decides your position and archetype — read off your stats, never picked.",
-  },
-  {
-    kicker: "THE 90s ARE EARNED",
-    lead: "One big year won't crown you.",
-    body: "Stats top out at 88 on their own. The 90s take years on the clock and influence that lasts, so a legend rating is a track record, not a hot streak.",
-    gold: true,
-  },
-];
-
 const LADDER = [
   { label: "BRONZE", bg: "#2A1A0C", ink: "#F0CFA8" },
   { label: "SILVER", bg: "#262B33", ink: "#D6DCE6" },
@@ -69,7 +50,7 @@ export default function HowItWorksModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby="hiw-title"
         onClick={(e) => e.stopPropagation()}
-        className="relative max-h-[88vh] w-[min(600px,100%)] overflow-auto rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,#1c1212,#0f0a0a)] p-[clamp(24px,4.5vw,40px)] shadow-[0_40px_120px_rgba(0,0,0,.6)] outline-none"
+        className="relative max-h-[88vh] w-[min(560px,100%)] overflow-auto rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,#1c1212,#0f0a0a)] p-[clamp(24px,4.5vw,36px)] shadow-[0_40px_120px_rgba(0,0,0,.6)] outline-none"
         style={{
           opacity: shown ? 1 : 0,
           transform: shown ? "translateY(0) scale(1)" : "translateY(14px) scale(.985)",
@@ -90,78 +71,119 @@ export default function HowItWorksModal({ onClose }: { onClose: () => void }) {
           ✕
         </button>
 
-        <div className="font-mono mb-[14px] text-[11px] font-semibold tracking-[.32em] text-brand">
+        <div className="font-mono mb-[12px] text-[13px] font-semibold tracking-[.32em] text-brand">
           THE RATER&apos;S EYE
         </div>
         <h3
           id="hiw-title"
-          className="font-display m-0 text-[clamp(30px,5.4vw,44px)] font-black leading-[.95] tracking-[-.01em]"
+          className="font-display m-0 text-[38px] font-black leading-tight tracking-[-.01em]"
         >
-          We don&apos;t rate you.
-          <br />
-          We read you<span className="text-brand">.</span>
+          How It Works<span className="text-brand">.</span>
         </h3>
-        <p className="m-0 mt-[15px] max-w-[47ch] text-[14.5px] leading-[1.55] text-ink-dim">
-          Six signals off your live YouTube channel, weighed against each other to find your shape. That shape is your card — so
-          two creators with the same numbers still walk out different. Here&apos;s how to read yours.
-        </p>
 
-        <div className="mt-[26px] flex flex-col">
-          {LAWS.map((law) => {
-            const accent = law.gold ? "var(--color-gold-hi)" : "var(--color-brand)";
-            return (
-              <div key={law.kicker} className="border-t border-white/[0.08] py-[18px] first:border-t-0 first:pt-0">
-                <div className="mb-[9px] flex items-center gap-[10px]">
-                  <span className="h-[2px] w-[18px] flex-none rounded-full" style={{ background: accent }} />
-                  <span className="font-mono text-[10.5px] font-bold tracking-[.2em]" style={{ color: accent }}>
-                    {law.kicker}
-                  </span>
-                </div>
-                <p className="font-display m-0 text-[18px] font-extrabold leading-tight text-ink">{law.lead}</p>
-                <p className="m-0 mt-[6px] text-[14px] leading-[1.55] text-ink-faint">{law.body}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-[24px] border-t border-white/[0.08] pt-[20px]">
-          <div className="font-mono mb-[14px] text-[10.5px] font-bold tracking-[.2em] text-ink-faint">
+        <div className="mt-[24px]">
+          <div className="font-mono mb-[14px] text-[12.5px] font-bold tracking-[.2em] text-ink-faint">
             WHAT FEEDS THE SIX
           </div>
           <div className="grid grid-cols-2 gap-x-[16px] gap-y-[13px] max-[440px]:grid-cols-1">
             {READS.map((r) => (
               <div key={r.abbr} className="flex items-start gap-[11px]">
-                <span className="font-display mt-[1px] w-[42px] flex-none rounded-[7px] bg-brand/15 py-[5px] text-center text-[13px] font-extrabold tracking-[.04em] text-brand">
+                <span className="font-display mt-[1px] w-[48px] flex-none rounded-[7px] bg-brand/15 py-[5px] text-center text-[15px] font-extrabold tracking-[.04em] text-brand">
                   {r.abbr}
                 </span>
-                <span className="text-[13px] leading-[1.4] text-ink-faint">{r.gloss}</span>
+                <span className="text-[15px] leading-[1.4] text-ink-faint">{r.gloss}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="mt-[24px] border-t border-white/[0.08] pt-[20px]">
-          <div className="font-mono mb-[13px] text-[10.5px] font-bold tracking-[.2em] text-ink-faint">THE LADDER</div>
+          <div className="font-mono mb-[13px] text-[12.5px] font-bold tracking-[.2em] text-ink-faint">THE LADDER</div>
           <div className="flex flex-wrap items-center gap-y-[8px]">
             {LADDER.map((f, i) => (
               <span key={f.label} className="inline-flex items-center">
                 <span
-                  className="font-display rounded-[7px] px-[11px] py-[5px] text-[12.5px] font-bold tracking-[.06em]"
+                  className="font-display rounded-[7px] px-[13px] py-[6px] text-[14.5px] font-bold tracking-[.06em]"
                   style={{ background: f.bg, color: f.ink }}
                 >
                   {f.label}
                 </span>
                 {i < LADDER.length - 1 && (
-                  <span aria-hidden className="px-[7px] text-[11px] text-ink-mute">
+                  <span aria-hidden className="px-[7px] text-[13px] text-ink-mute">
                     →
                   </span>
                 )}
               </span>
             ))}
           </div>
-          <p className="m-0 mt-[16px] text-[12px] leading-[1.5] text-ink-mute">
-            Read live from your public YouTube channel details via the Data API. No credentials required for public channels, no edits — just the tape.
-          </p>
+        </div>
+
+        <div className="mt-[24px] border-t border-white/[0.08] pt-[20px]">
+          <div className="font-mono mb-[14px] text-[12.5px] font-bold tracking-[.2em] text-ink-faint">
+            POSITIONS
+          </div>
+          <div className="grid grid-cols-2 gap-x-[20px] gap-y-[12px] max-[440px]:grid-cols-1">
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                ST
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">25M+ subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                RW
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">10M – 25M subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                LW
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">5M – 10M subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                CAM
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">1M – 5M subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                CM
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">500K – 1M subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                CDM
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">100K – 500K subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                RB
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">50K – 100K subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                LB
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">10K – 50K subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                CB
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">1K – 10K subs</span>
+            </div>
+            <div className="flex items-center gap-[10px]">
+              <span className="font-display w-[52px] flex-none rounded-[6px] bg-brand/15 py-[3px] text-center text-[20px] font-bold text-brand">
+                GK
+              </span>
+              <span className="text-[13.5px] font-semibold text-ink-soft">0 – 1K subs</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
